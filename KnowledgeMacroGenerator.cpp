@@ -79,10 +79,12 @@ namespace {
 		"char*",
 		"unsigned char*",
 	};
-
 	class PrintFunctionsConsumer : public ASTConsumer {
 		public:
 			virtual void HandleTagDeclDefinition(TagDecl *D) {
+				clang::LangOptions lo;
+				lo.CPlusPlus = true;
+				clang::PrintingPolicy p(lo);
 				if (D->hasNameForLinkage() && D->isClass()) {
 					//llvm::errs() << "Class " << D->getNameAsString() << "\n";
 					if (const clang::CXXRecordDecl* x = dyn_cast<CXXRecordDecl>(D)) {
@@ -108,13 +110,14 @@ namespace {
 							}
 							llvm::errs() << "Begin(" << x->getQualifiedNameAsString() << ")\n";
 							for (clang::CXXRecordDecl::base_class_const_iterator it = x->bases_begin(); it != x->bases_end(); ++it) {
-								if (!it->getType()->isInstantiationDependentType()) {
-									llvm::errs() << "\tsuper(" << it->getType().getAsString() << ")\n";
-								}
+								//if (!it->getType()->isInstantiationDependentType()) {
+									llvm::errs() << "\tsuper(" << it->getType().getCanonicalType().getAsString(lo) << ")\n";
+								//}
 							}
 							std::vector<std::string> multifields;
 							for (clang::CXXRecordDecl::method_iterator it = x->method_begin(); it != x->method_end(); ++it) {
-								if (it->getNumParams() == 0 && 
+								if (it->getAccess() == AS_public && 
+										it->getNumParams() == 0 && 
 										it->isInstance() && 
 										!it->getReturnType()->isVoidType() && 
 										!it->isTemplateInstantiation() &&
@@ -124,7 +127,7 @@ namespace {
 										!it->isOverloadedOperator() && it->isConst()) {
 									std::string target,
 										slotName,
-										ret = it->getReturnType().getUnqualifiedType().getAsString(), 
+										ret = it->getReturnType().getCanonicalType().getAsString(p), 
 										name = it->getNameInfo().getAsString();
 									StringRef sr = name;
 									if (sr.startswith_lower("getContext") || sr.startswith_lower("convert") || sr.startswith_lower("clone") || sr.startswith_lower("Parse") || sr.startswith_lower("strip")) {
@@ -155,7 +158,8 @@ namespace {
 									X("element_begin", "element_end", "getNumElements", "t->element_begin()", "t->element_end()", "t->getNumElements()", "elements");
 									X("use_begin", "use_end", "getNumUses", "t->use_begin()", "t->use_end()", "t->getNumUses()", "uses");
 									Y("user_begin", "user_end", "getNumUsers", "t->user_begin()", "t->user_end()", "users");
-									X("idx_begin", "idx_end", "getNumIndices", "t->idx_begin()", "t->idx_end()", "t->getnumIndices()", "idxes");
+									X("idx_begin", "idx_end", "getNumIndices", "t->idx_begin()", "t->idx_end()", "t->getNumIndices()", "indices");
+									X("arg_begin", "arg_end", "arg_size", "t->arg_begin()", "t->arg_end()", "t->arg_size()", "args");
 									ignore("global_empty");
 									ignore("empty");
 									ignore("alias_empty");
@@ -194,6 +198,7 @@ namespace {
 											target = "Reference";
 										} else {
 											target = "Unknown_FIXME";
+											llvm::errs() << "//";
 										}
 									}
 									llvm::errs() << "\tX(" << 
