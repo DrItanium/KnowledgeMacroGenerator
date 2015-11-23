@@ -72,12 +72,21 @@ namespace {
 		"const class std::basic_string<char>",
 		"const class std::basic_string<char>&",
 		"class std::basic_string<char>&",
-		"class std::basic_string<char>&",
 		"class llvm::APInt",
 		"const unsigned char*",
 		"const char*",
 		"char*",
 		"unsigned char*",
+		"llvm::StringRef",
+		"llvm::APInt",
+		"std::basic_string<char>",
+		"const std::basic_string<char>",
+		"const std::basic_string<char>&",
+		"std::basic_string<char>&",
+		"const std::string &",
+		"std::string &",
+		"const std::string",
+		"std::string",
 	};
 	class PrintFunctionsConsumer : public ASTConsumer {
 		public:
@@ -111,7 +120,7 @@ namespace {
 							llvm::errs() << "Begin(" << x->getQualifiedNameAsString() << ")\n";
 							for (clang::CXXRecordDecl::base_class_const_iterator it = x->bases_begin(); it != x->bases_end(); ++it) {
 								//if (!it->getType()->isInstantiationDependentType()) {
-									llvm::errs() << "\tsuper(" << it->getType().getCanonicalType().getAsString(lo) << ")\n";
+								llvm::errs() << "\tsuper(" << it->getType().getAsString(lo) << ")\n";
 								//}
 							}
 							std::vector<std::string> multifields;
@@ -125,9 +134,12 @@ namespace {
 										//!it->isTemplateDecl() &&
 										!it->isInAnonymousNamespace() &&
 										!it->isOverloadedOperator() && it->isConst()) {
+									//llvm::errs() << " // hasQualifiers = " << it->getReturnType().hasQualifiers() << "\n";
+									//llvm::errs() << " // hasLocalQualifiers = " << it->getReturnType().hasLocalQualifiers() << "\n";
+									//llvm::errs() << " // isCanonical = " << it->getReturnType().isCanonical() << "\n";
 									std::string target,
 										slotName,
-										ret = it->getReturnType().getCanonicalType().getAsString(p), 
+										ret = it->getReturnType().getAsString(p), 
 										name = it->getNameInfo().getAsString();
 									StringRef sr = name;
 									if (sr.startswith_lower("getContext") || sr.startswith_lower("convert") || sr.startswith_lower("clone") || sr.startswith_lower("Parse") || sr.startswith_lower("strip")) {
@@ -141,7 +153,11 @@ namespace {
 									} else if (sr == begin) { \
 										std::string tmp; \
 										llvm::raw_string_ostream q(tmp); \
-										q << "X(" << ret << ", \"" << field << "\", 0, Multifield, " << tbeg << ", " << tend << ", " << tsize << ", 0) // " << it->getParent()->getQualifiedNameAsString() << "\n"; \
+										q << "X("; \
+										if (!it->getReturnType().isCanonical()) { \
+											q << x->getQualifiedNameAsString() << "::"; \
+										} \
+										q << ret << ", \"" << field << "\", 0, Multifield, " << tbeg << ", " << tend << ", " << tsize << ", 0) // " << it->getParent()->getQualifiedNameAsString() << "\n"; \
 										multifields.push_back(q.str()); \
 										continue; \
 										ignore(end); \
