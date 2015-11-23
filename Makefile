@@ -1,4 +1,4 @@
-##===- examples/PrintFunctionNames/Makefile ----------------*- Makefile -*-===##
+##===- examples/KnowledgeMacroGenerator/Makefile ----------------*- Makefile -*-===##
 # 
 #                     The LLVM Compiler Infrastructure
 #
@@ -8,13 +8,13 @@
 ##===----------------------------------------------------------------------===##
 
 CLANG_LEVEL := ../..
-LIBRARYNAME = PrintFunctionNames
+LIBRARYNAME = KnowledgeMacroGenerator
 
 # If we don't need RTTI or EH, there's no reason to export anything
 # from the plugin.
 ifneq ($(REQUIRES_RTTI), 1)
 ifneq ($(REQUIRES_EH), 1)
-EXPORTED_SYMBOL_FILE = $(PROJ_SRC_DIR)/PrintFunctionNames.exports
+EXPORTED_SYMBOL_FILE = $(PROJ_SRC_DIR)/KnowledgeMacroGenerator.exports
 endif
 endif
 
