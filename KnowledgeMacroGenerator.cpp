@@ -108,9 +108,9 @@ namespace {
 							}
 							llvm::errs() << "Begin(" << x->getQualifiedNameAsString() << ")\n";
 							for (clang::CXXRecordDecl::base_class_const_iterator it = x->bases_begin(); it != x->bases_end(); ++it) {
-								//if (!it->getType()->isInstantiationDependentType()) {
-								llvm::errs() << "\tsuper(" << it->getType().getAsString() << ")\n";
-								//}
+								if (!it->getType()->isInstantiationDependentType()) {
+									llvm::errs() << "\tsuper(" << it->getType().getAsString() << ")\n";
+								}
 							}
 							std::vector<std::string> multifields;
 							for (clang::CXXRecordDecl::method_iterator it = x->method_begin(); it != x->method_end(); ++it) {
@@ -122,9 +122,12 @@ namespace {
 										//!it->isTemplateDecl() &&
 										!it->isInAnonymousNamespace() &&
 										!it->isOverloadedOperator() && it->isConst()) {
-									std::string target, slotName, ret = it->getReturnType().getCanonicalType().getAsString(), name = it->getNameInfo().getAsString();
+									std::string target,
+										slotName,
+										ret = it->getReturnType().getUnqualifiedType().getAsString(), 
+										name = it->getNameInfo().getAsString();
 									StringRef sr = name;
-									if (sr.startswith("getContext") || sr.startswith("convert") || sr.startswith("clone") || sr.startswith("parse")) {
+									if (sr.startswith_lower("getContext") || sr.startswith_lower("convert") || sr.startswith_lower("clone") || sr.startswith_lower("Parse") || sr.startswith_lower("strip")) {
 										continue;
 									} else if (sr == "rbegin" || sr == "rend" || sr.endswith("rbegin") || sr.endswith("rend") || sr == "operands") {
 										continue;
@@ -146,7 +149,13 @@ namespace {
 									X("op_begin", "op_end", "getNumOperands", "t->op_begin()", "t->op_end()", "t->getNumOperands()", "operands");
 									X("alias_begin", "alias_end", "alias_size", "t->alias_begin()", "t->alias_end()", "t->alias_size()", "aliases");
 									X("named_metadata_begin", "named_metadata_end", "named_metadata_size", "t->named_metadata_begin()", "t->named_metadata_end()", "t->named_metadata_size()", "named_metadata");
-									Y("global_begin", "global_end", "getNumOperands", "t->global_begin()", "t->global_end()", "globals");
+									Y("global_begin", "global_end", "getNumGlobals", "t->global_begin()", "t->global_end()", "globals");
+									X("subtype_begin", "subtype_end", "getNumContainedTypes", "t->subtype_begin()", "t->subtype_end()", "t->getNumContainedTypes()", "subtypes");
+									X("param_begin", "param_end", "getNumParams", "t->param_begin()", "t->param_end()", "t->getNumParams()", "params");
+									X("element_begin", "element_end", "getNumElements", "t->element_begin()", "t->element_end()", "t->getNumElements()", "elements");
+									X("use_begin", "use_end", "getNumUses", "t->use_begin()", "t->use_end()", "t->getNumUses()", "uses");
+									Y("user_begin", "user_end", "getNumUsers", "t->user_begin()", "t->user_end()", "users");
+									X("idx_begin", "idx_end", "getNumIndices", "t->idx_begin()", "t->idx_end()", "t->getnumIndices()", "idxes");
 									ignore("global_empty");
 									ignore("empty");
 									ignore("alias_empty");

@@ -1,11 +1,11 @@
 #!/bin/bash
 # modify BD for your own purposes
-export BD=$HOME/dev/LLVM/llvm-3.6.0.src
-$BD/Debug+Asserts/bin/clang++ -D_GNU_SOURCE -D_DEBUG -D__STDC_CONSTANT_MACROS \
+export BD=$HOME/dev/llvm/llvm-3.6.0.src
+$BD/Release+Asserts/bin/clang++ -D_GNU_SOURCE -D_DEBUG -D__STDC_CONSTANT_MACROS \
 		-D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -D_GNU_SOURCE \
 		-std=c++11 \
 		-I$BD/tools/clang/include -Itools/clang/include -I$BD/include -Iinclude \
 		-I$BD/projects/durandal/include -I$BD/projects/durandal/include/electron \
 		 $1 -fsyntax-only \
-		-Xclang -load -Xclang $BD/Debug+Asserts/lib/KnowledgeMacroGenerator.so -Xclang \
+		-Xclang -load -Xclang $BD/Release+Asserts/lib/KnowledgeMacroGenerator.so -Xclang \
 		-plugin -Xclang print-fns 2> $1.rules
